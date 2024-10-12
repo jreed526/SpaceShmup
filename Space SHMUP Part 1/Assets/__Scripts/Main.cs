@@ -5,12 +5,15 @@ using UnityEngine.SceneManagement; //Enables the loading & reloading of Scenes
 
 public class Main : MonoBehaviour {
     static private Main S; //private singleton for Main
+    static private Dictionary<eWeaponType, WeaponDefinition> WEAP_DICT;
 
     [Header("Inscribed")]
+    public bool spawnEnemies = true;
     public GameObject[] prefabEnemies; //Array of Enemy prefabs
     public float enemySpawnPerSecond = 0.5f; // # Enemies spawned/second
     public float enemyInsetDefault = 1.5f; //Inset from the sides
     public float gameRestartDelay = 2;
+    public WeaponDefinition[] weaponDefinitions;
 
     private BoundsCheck bndCheck;
 
@@ -21,9 +24,21 @@ public class Main : MonoBehaviour {
 
         //Invoke SpawnEnemy() once (in 2 seconds, based on default values)
         Invoke(nameof(SpawnEnemy), 1f/enemySpawnPerSecond);
+
+        //A generic Dictionary with eWeaponType as the key
+        WEAP_DICT = new Dictionary<eWeaponType, WeaponDefinition>();
+        foreach(WeaponDefinition def in weaponDefinitions) {
+            WEAP_DICT[def.type] = def;
+        }
     }
 
     public void SpawnEnemy() {
+        //If spawnEnemies is false, skip to the next invoke of SpawnEnemy()
+        if(!spawnEnemies) {
+            Invoke(nameof(SpawnEnemy), 1f / enemySpawnPerSecond);
+            return;
+        }
+
         //Pick a random Enemy prefab to instantiate
         int ndx = Random.Range(0, prefabEnemies.Length);
         GameObject go = Instantiate<GameObject>(prefabEnemies[ndx]);
@@ -59,5 +74,23 @@ public class Main : MonoBehaviour {
 
     static public void HERO_DIED() {
         S.DelayedRestart();
+    }
+
+    ///<summary>
+    ///Static function that gets a WeaponDefinition from the WEAP_DICT static
+    ///protected field of the main class.
+    ///</summary>
+    ///<returns>The WeaponDefinition, or if there is no WeaponDefinition with
+    ///the eWeaponType passed in, returns a new WeaponDefinition with a
+    ///eWeaponType of eWeaponType.none.</returns>
+    ///<param name wt> The eWeaponType of the desired WeaponDefinitions </param>
+    
+    static public WeaponDefinition GET_WEAPON_DEFINITION(eWeaponType wt) {
+        if(WEAP_DICT.ContainsKey(wt)) {
+            return(WEAP_DICT[wt]);
+        }
+        //If no entry of the correct type exists in WEAP_DICT, return a new
+        //WeaponDefinition with a type of eWeaponType.none
+        return(new WeaponDefinition());
     }
 }
