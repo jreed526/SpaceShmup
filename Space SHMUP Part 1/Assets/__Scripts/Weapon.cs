@@ -7,6 +7,7 @@ using UnityEngine;
 /// It also included a "shield" type to allow a shield PowerUp.
 /// Items marked [NI] below are Not Implemented
 /// </summary>
+
 public enum eWeaponType {
     none, //The default / no weapon
     blaster, //simple blaster
@@ -120,6 +121,8 @@ public class Weapon : MonoBehaviour {
                 p.vel = p.transform.rotation * vel;
                 break;
         }
+        // Play the sound when a shot is fired
+        Hero.S.audioSource.PlayOneShot(Hero.S.fireSound);
     }
 
     private ProjectileHero MakeProjectile() {

@@ -13,6 +13,12 @@ public class Hero : MonoBehaviour {
     public float pitchMult = 30;
     public GameObject projectilePrefab;
     public float projectileSpeed = 40;
+    public Weapon[] weapons;
+    public AudioClip fireSound; //NEW
+    public AudioSource audioSource; //NEW
+    public AudioClip shieldPickupSound; // NEW
+    public AudioClip weaponPickupSound; // NEW
+
 
     [Header("Dynamic")] [Range(0,4)]
     private float _shieldLevel = 1;
@@ -30,7 +36,15 @@ public class Hero : MonoBehaviour {
         } else {
             Debug.LogError("Hero.Awake() - Attempted to assign second Hero.S!");
         }
-        //fireEvent += TempFire;
+
+        // Initialize the AudioSource
+        audioSource = gameObject.AddComponent<AudioSource>(); //NEW
+        audioSource.clip = fireSound; //NEW
+        audioSource.volume = 0.02f; //NEW
+
+        //Reset the weapons to start _Herp with 1 blaster
+        ClearWeapons();
+        weapons[0].SetType(eWeaponType.blaster);
     }
 
     void Update() {
@@ -63,12 +77,46 @@ public class Hero : MonoBehaviour {
         lastTriggerGo = go;
 
         Enemy enemy = go.GetComponent<Enemy>();
+        PowerUp pUp = go.GetComponent<PowerUp>();
         if (enemy != null) { //If the shield was triggered by an enemy
             shieldLevel--; //Decrease the level of the shield by 1
             Destroy(go); //Destroy enemy
+        } else if (pUp != null) { //If shield hit a PowerUp
+            AbsorbPowerUp(pUp); //...absorb PowerUp
         } else {
             Debug.LogWarning("Shield trigger hit by non-Enemy: " + go.name);
         }
+    }
+
+    public void AbsorbPowerUp(PowerUp pUp) {
+        Debug.Log("Absorbed PowerUp: " + pUp.type);
+        switch (pUp.type) {
+        case eWeaponType.shield:
+            shieldLevel++;
+            if (shieldPickupSound != null) {
+                audioSource.PlayOneShot(shieldPickupSound); // Play sound here
+            }
+            break;
+
+        default:
+            if(pUp.type == weapons[0].type) { //If it is the same type
+                Weapon weap = GetEmptyWeaponSlot();
+                if(weap != null) {
+                    //Set it to pUp.type
+                    weap.SetType(pUp.type);
+                }
+            } else { //If this is a different weapon type
+                ClearWeapons();
+                weapons[0].SetType(pUp.type);
+            }
+
+            // Play the weapon pickup sound for weapon power-ups
+            if (pUp.type != eWeaponType.shield && weaponPickupSound != null) {
+                audioSource.PlayOneShot(weaponPickupSound); // Play sound here
+            }
+            break;
+        }
+        pUp.AbsorbedBy(this.gameObject);
     }
 
     public float shieldLevel {
@@ -80,6 +128,23 @@ public class Hero : MonoBehaviour {
                 Destroy(this.gameObject); //Destroy the Hero
                 Main.HERO_DIED();
             }
+        }
+    }
+
+    //Finds the first empty Weapon slot and t\returns it
+    Weapon GetEmptyWeaponSlot() {
+        for(int i=0; i <weapons.Length; i++) {
+            if(weapons[i].type == eWeaponType.none) {
+                return(weapons[i]);
+            }
+        }
+        return(null); 
+    }
+
+    //Sets the type of all Weapon slots to none
+    void ClearWeapons() {
+        foreach (Weapon w in weapons) {
+            w.SetType(eWeaponType.none);
         }
     }
 }
