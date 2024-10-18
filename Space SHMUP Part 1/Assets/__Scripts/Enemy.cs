@@ -12,9 +12,15 @@ public class Enemy : MonoBehaviour {
 
     protected bool calledShipDestroyed = false;
     protected BoundsCheck bndCheck;
+    public AudioClip explosionSound; // NEW
+    private AudioSource audioSource; // NEW
+
 
     void Awake() {
         bndCheck = GetComponent<BoundsCheck>();
+        // Initialize the AudioSource
+        audioSource = gameObject.AddComponent<AudioSource>(); // NEW
+        audioSource.volume = 0.2f; //NEW
     }
 
     //This is a Property: A methos that acts like a field
@@ -53,12 +59,16 @@ public class Enemy : MonoBehaviour {
                 //Get the damage amount from the Main WEAP_DICT.
                 health -= Main.GET_WEAPON_DEFINITION(p.type).damageOnHit;
                 if(health <= 0) {
+                    // Play explosion sound before destroying the enemy
+                    if (explosionSound != null) {
+                    PlayExplosionSound(); // Play sound here
+                    }
                     //Tell Main that thus ship was destroyed
                     if (!calledShipDestroyed) {
                         calledShipDestroyed = true;
                         Main.SHIP_DESTROYED(this);
                     }
-                    //Destroy this Enemy
+                    // Immediately destroy this Enemy
                     Destroy(this.gameObject);
                 }
             }
@@ -67,5 +77,14 @@ public class Enemy : MonoBehaviour {
         } else {
             print("Enemy hit by non-ProjectileHero: " + otherGO.name);
         }
+    }
+    // Method to play the explosion sound using a temporary object
+    private void PlayExplosionSound() {
+        GameObject tempGO = new GameObject("TempAudio");
+        AudioSource tempAudioSource = tempGO.AddComponent<AudioSource>();
+        tempAudioSource.clip = explosionSound;
+        tempAudioSource.volume = 0.2f; // Set volume to half
+        tempAudioSource.Play();
+        Destroy(tempGO, explosionSound.length); // Destroy after the sound plays
     }
 }

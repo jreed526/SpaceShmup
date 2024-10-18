@@ -8,7 +8,7 @@ public class Menu : MonoBehaviour
     
         public void OnPlayButton ()
     {
-        SceneManager.LoadScene("_Scene_0");
+        SceneManager.LoadScene("__Scene_0");
     }
     // Called when we click the "Quit" button.
     public void OnQuitButton ()
@@ -18,7 +18,7 @@ public class Menu : MonoBehaviour
     //Restart Game
     public void OnRestartButton ()
     {
-        SceneManager.LoadScene("_Scene_0");
+        SceneManager.LoadScene("__Scene_0");
     }
 
 }

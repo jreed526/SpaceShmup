@@ -71,9 +71,8 @@ public class Main : MonoBehaviour {
     }
 
     void Restart() {
-        //Reload __Scene_0 to restart the game
-        // "__Scene_0" below starts with 2 underscores and ends with a zero.
-        SceneManager.LoadScene("__Scene_0");
+        //Load Game_Over
+        SceneManager.LoadScene("_Game_Over");
     }
 
     static public void HERO_DIED() {
